@@ -10,20 +10,44 @@ output:
 
 First, I read in the data, stored in the activity subfolder. 
 
-```{r}
+
+```r
 activity <- read.csv("./activity/activity.csv")
 ```
 
 Next, I look up the properties of the data:
 
-```{r}
+
+```r
 str(activity)
+```
+
+```
+## 'data.frame':	17568 obs. of  3 variables:
+##  $ steps   : int  NA NA NA NA NA NA NA NA NA NA ...
+##  $ date    : Factor w/ 61 levels "2012-10-01","2012-10-02",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
 ```
 
 We notice that `activity$date` is not yet in a date format. Let's convert: 
 
-```{r}
+
+```r
 library(lubridate)
+```
+
+```
+## 
+## Attaching package: 'lubridate'
+```
+
+```
+## The following object is masked from 'package:base':
+## 
+##     date
+```
+
+```r
 activity$date <- as.Date(activity$date, format = "%Y-%m-%d")
 ```
 
@@ -43,7 +67,8 @@ I use the `dplyr` package (included in `tidyverse`), and execute the following s
 
 In the last command, I show a histogram of the total number of steps every day. 
 
-```{r, warning = FALSE, message = FALSE}
+
+```r
 library(tidyverse)
 
 question1 <- activity %>%
@@ -56,8 +81,20 @@ question1 %>%
         ggplot(aes(x = total)) + 
             geom_histogram(fill = "orange") + 
             theme_classic()
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+
+```r
 mean(question1$total) ; median(question1$total)
+```
+
+```
+## [1] 10766.19
+```
+
+```
+## [1] 10765
 ```
 
 We can see that mean and median steps per day are about equal, 10766.19. That makes sense because the observations are centured around the mean, judging by the histogram. 
@@ -68,7 +105,8 @@ We can see that mean and median steps per day are about equal, 10766.19. That ma
 
 I use `dplyr` again to average the steps according to interval, and then construct a plot.
 
-```{r}
+
+```r
 question2 <- activity %>%
         na.omit() %>%
         group_by(interval) %>%
@@ -80,10 +118,20 @@ plot(question2$interval, question2$mean,
      type = "l", xlab = "Interval", ylab = "Mean no. of steps")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+
 2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
-```{r}
+
+```r
 question2[which.max(question2$mean),]
+```
+
+```
+## # A tibble: 1 x 2
+##   interval  mean
+##      <int> <dbl>
+## 1      835  206.
 ```
 
 Interval 835. 
@@ -92,8 +140,13 @@ Interval 835.
 
 1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
 
-```{r}
+
+```r
 sum(is.na(activity$steps))
+```
+
+```
+## [1] 2304
 ```
 
 2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
@@ -102,7 +155,8 @@ sum(is.na(activity$steps))
 
 Let's make it the mean for that 5-minute interval. The data frame `question2` contains the mean values for each interval. Let's create a new data frame identical to the old one, and then replace the NA entries by the matched entry in the question 2 dataset, and then order to replace them by the means, which are stored in column no. 2!
 
-```{r}
+
+```r
 newactivity <- activity
 
 for (i in 1:nrow(newactivity)) {
@@ -112,18 +166,24 @@ for (i in 1:nrow(newactivity)) {
                                     question2$interval), 2]
         }
 }
-
 ```
 
 4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
 
-```{r}
+
+```r
 newactivity %>%
     group_by(date) %>%
     summarise(total = sum(as.numeric(steps))) %>%
     ggplot(aes(x = total)) + geom_histogram(fill = "purple") +
     theme_classic()
 ```
+
+```
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
 
 The histograms look (almost) the same, so the values do not differ from the first part of the assignment, and the impact of imputation is negligible. 
 
@@ -133,7 +193,8 @@ The histograms look (almost) the same, so the values do not differ from the firs
 
 I create a vector indicating weekend days. Due to not having English locale on this PC, I use another language (Dutch). Then, I create a factor in the original activity dataset indicating whether the day is a weekday or not by the `ifelse` function. 
 
-```{r}
+
+```r
 weekend <- c("zaterdag","zondag")
 
 activity <- activity %>%
@@ -148,7 +209,8 @@ activity <- activity %>%
 
 I omit the NA's, transform the dataframe again, so that I can take the mean per interval per category (weekday or weekend), and then plot the interval (x) against that mean (y), and differentiate between the category of day. 
 
-```{r}
+
+```r
 activity %>%
     na.omit() %>%
     group_by(interval, day) %>%
@@ -156,8 +218,9 @@ activity %>%
         ggplot(aes(interval, avgsteps)) + 
             geom_line() + 
             facet_grid(vars(day))
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
 
 
 
